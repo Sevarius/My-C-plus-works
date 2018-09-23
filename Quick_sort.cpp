@@ -1,76 +1,82 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include "iostream"
+#include <vector>
 #include <time.h>
 
-using std::cout;		//working in namespace std, but only take cout è cin functions out of there
+using std::cout;
 using std::cin;
+using std::vector;
 
-#define ARRAY_LENGTH 33		//define the length of array
+template<typename SOME_TYPE>
+int SortFunction(uint32_t left_end, uint32_t right_end, vector<SOME_TYPE> &ARRAY);
 
-int array[ARRAY_LENGTH];	//make the global array, for not throwing it between functions
-int SortFunction(int left_end, int right_end);		//define working function
-
-int main() {		//main function
+int main() {
 	
 	srand(time(0));		//function that is used for making new random numbers every time this function is called
 
+	const uint32_t ARRAY_LENGTH = 33;
+	vector<uint32_t> array(ARRAY_LENGTH);
+	
 	for (int counter = 0; counter < ARRAY_LENGTH; counter++)		//fill the array with random numbers from 0 to 100
 		array[counter] = rand() % 100;
 
-	for (int counter = 0; counter < ARRAY_LENGTH; counter++) {		//printing array
-		cout << array[counter];
-		cout << ' ';
-	}
+	for (int counter = 0; counter < ARRAY_LENGTH; counter++)
+		cout << array[counter] << ' ';
 
-	cout << '\n';		//indentation
+	cout << '\n';
 
-	SortFunction(0, ARRAY_LENGTH);		//calling main working function
+	SortFunction<uint32_t>(0, ARRAY_LENGTH - 1, array);
 
-	for (int counter = 0; counter < ARRAY_LENGTH; counter++) {		//printing sorted array
-		cout << array[counter];
-		cout << ' ';
-	}
+	for (int counter = 0; counter < ARRAY_LENGTH; counter++)
+		cout << array[counter] << ' ';
 
 	int just_for_luls;		//words to stay console in open state
 	cin >> just_for_luls;
 }
 
+template<typename SOME_TYPE>
+int SortFunction(uint32_t left_end, uint32_t right_end, vector<SOME_TYPE> &ARRAY) {
 
-int SortFunction(int left_end, int right_end) {		//main working function
-	
-	if (right_end - left_end < 1)		//if segment is one character in length
+	if (right_end - left_end + 1 <= 1)		//if segment is one character in length it is already sorted
 		return 0;
 	
-	int supporting_index = left_end;		//left end of segment given is adopted for supporting element
-	int left_index = left_end, right_index = right_end;		//indices are given the value of the ends of segment
-	int additional_variable;		//variable needed during elements reshuffling
+	uint32_t supporting_index = left_end;		//left end of segment given is adopted for supporting element
+	uint32_t left_index = left_end, right_index = right_end;
+	SOME_TYPE additional_variable;		//variable needed during elements reshuffling
 	
-	while (left_index < right_index) {		//cycle is working until we go through all elements in the segment
+	for ( ;left_index < right_index; ) {
 
-		if (array[left_index] <= array[supporting_index])
+		if (ARRAY[left_index] <= ARRAY[supporting_index])
 			left_index += 1;
 		else {
-			if (array[right_index] >= array[supporting_index])
+			if (ARRAY[right_index] >= ARRAY[supporting_index])
 				right_index -= 1;
 			else {
-				additional_variable = array[left_index];		//reshaffle elements
-				array[left_index] = array[right_index];			
-				array[right_index] = additional_variable;		
+				additional_variable = ARRAY[left_index];		//reshaffle elements
+				ARRAY[left_index] = ARRAY[right_index];			
+				ARRAY[right_index] = additional_variable;		
 			}
 		}
 		
 	}
-	additional_variable = array[supporting_index];		//moving supporting element on his right place in a sequence
-	array[supporting_index] = array[right_index - 1];
-	array[right_index - 1] = additional_variable;
-	supporting_index = right_index - 1;		//changing supporting element index	
 
-	if (right_end - left_end <= 2)		//if segment is 3 elements in length, it's already sorted
-		return 0;
+	if (ARRAY[right_index] >= ARRAY[supporting_index]) {	//moving supporting element on his right place in a sequence
+		additional_variable = ARRAY[supporting_index];
+		ARRAY[supporting_index] = ARRAY[right_index - 1];
+		ARRAY[right_index - 1] = additional_variable;
+		supporting_index = right_index - 1;
+	}
+	else {
+		additional_variable = ARRAY[supporting_index];
+		ARRAY[supporting_index] = ARRAY[right_index];
+		ARRAY[right_index] = additional_variable;
+		supporting_index = right_index;
+	}
 
-	SortFunction(left_end, supporting_index);		//call next stage (recursion)
-	SortFunction(supporting_index + 1, right_end);
+	SortFunction(left_end, supporting_index - 1, ARRAY);
+	SortFunction(supporting_index + 1, right_end, ARRAY);
 	
 	return 0;
 }
