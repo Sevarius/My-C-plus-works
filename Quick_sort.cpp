@@ -9,8 +9,9 @@ using std::cout;
 using std::cin;
 using std::vector;
 
-template<typename SOME_TYPE>
-int SortFunction(uint32_t left_end, uint32_t right_end, vector<SOME_TYPE> &ARRAY);
+template<typename POINTER, typename LESS_FUN, typename SOME_TYPE>
+void SortFunction(const POINTER begin, const POINTER end);
+uint32_t Less(uint32_t a, uint32_t b);
 
 int main() {
 	
@@ -26,8 +27,8 @@ int main() {
 		cout << array[counter] << ' ';
 
 	cout << '\n';
-
-	SortFunction<uint32_t>(0, ARRAY_LENGTH - 1, array);
+	uint32_t *begin = &(array[0]), *end = &(array[ARRAY_LENGTH - 1]);
+	SortFunction<uint32_t>(*begin, *end);									//ERROR is here
 
 	for (int counter = 0; counter < ARRAY_LENGTH; counter++)
 		cout << array[counter] << ' ';
@@ -36,47 +37,51 @@ int main() {
 	cin >> just_for_luls;
 }
 
-template<typename SOME_TYPE>
-int SortFunction(uint32_t left_end, uint32_t right_end, vector<SOME_TYPE> &ARRAY) {
+template<typename POINTER, typename LESS_FUN, typename SOME_TYPE>
+void SortFunction(const POINTER begin, const POINTER end) {
 
-	if (right_end - left_end + 1 <= 1)		//if segment is one character in length it is already sorted
-		return 0;
+	if (&end - &begin + 1 <= 1)		//if segment is one character in length it is already sorted
+		return;
 	
-	uint32_t supporting_index = left_end;		//left end of segment given is adopted for supporting element
-	uint32_t left_index = left_end, right_index = right_end;
-	SOME_TYPE additional_variable;		//variable needed during elements reshuffling
+	POINTER supporting_value = begin;		//left end of segment given is adopted for supporting element
+	uint32_t left_index = 0, right_index = 0;
+	POINTER additional_variable;		//variable needed during elements reshuffling
 	
-	for ( ;left_index < right_index; ) {
+	for ( ;begin + left_index == end - right_index; ) {
 
-		if (ARRAY[left_index] <= ARRAY[supporting_index])
+		if (begin + left_index <= supporting_value)
 			left_index += 1;
 		else {
-			if (ARRAY[right_index] >= ARRAY[supporting_index])
-				right_index -= 1;
+			if (end - right_index >= supporting_value)
+				right_index += 1;
 			else {
-				additional_variable = ARRAY[left_index];		//reshaffle elements
-				ARRAY[left_index] = ARRAY[right_index];			
-				ARRAY[right_index] = additional_variable;		
+				additional_variable = begin + left_index;		//reshaffle elements
+				begin + left_index = end - right_index;			
+				end - right_index = additional_variable;		
 			}
 		}
 		
 	}
 
-	if (ARRAY[right_index] >= ARRAY[supporting_index]) {	//moving supporting element on his right place in a sequence
-		additional_variable = ARRAY[supporting_index];
-		ARRAY[supporting_index] = ARRAY[right_index - 1];
-		ARRAY[right_index - 1] = additional_variable;
-		supporting_index = right_index - 1;
+	if (end - right_index >= supporting_value) {	//moving supporting element on his right place in a sequence
+		additional_variable = supporting_value;
+		supporting_value = end - right_index + 1;
+		end - right_index + 1 = additional_variable;
+		right_index += 1;
 	}
 	else {
-		additional_variable = ARRAY[supporting_index];
-		ARRAY[supporting_index] = ARRAY[right_index];
-		ARRAY[right_index] = additional_variable;
-		supporting_index = right_index;
+		additional_variable = supporting_value;
+		supporting_value = end - right_index;
+		end - right_index = additional_variable;
 	}
 
-	SortFunction(left_end, supporting_index - 1, ARRAY);
-	SortFunction(supporting_index + 1, right_end, ARRAY);
-	
-	return 0;
+	SortFunction(begin, end - right_index - 1);
+	SortFunction(end - right_index + 1, end);
+
+}
+
+
+uint32_t Less(uint32_t a, uint32_t b) {
+	if (a > b) return a;
+	else return b;
 }
