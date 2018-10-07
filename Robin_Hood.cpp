@@ -29,12 +29,11 @@ int main() {
 		cout << Dist[i] << "  " << Time[i] << "\n";
 
 	for (int StartCoin = 0; StartCoin < NumOfCoins; StartCoin++) {	//difrent start positions
-		CurrentPos = Dist[StartCoin];
+		CurrentPos = StartCoin;
 		CurrentTime = 0;
 		FreeCoins[StartCoin] = -1;
-		for (int NextCoin = 0; NextCoin < NumOfCoins; NextCoin++)
-			if (FreeCoins[NextCoin] != -1)
-				Jump(NextCoin);
+		if (StartCoin != 0) Jump(StartCoin - 1);
+		if (StartCoin != NumOfCoins - 1) Jump(StartCoin + 1);
 		FreeCoins[StartCoin] = 1;
 	}
 	
@@ -50,40 +49,46 @@ int main() {
 
 void Jump(int CoinPos) {
 	
+	for (int i = 0; i < NumOfCoins; i++)						//checking
+		if (FreeCoins[i] != -1 && Time[i] - fabs(Dist[CurrentPos] - Dist[CoinPos]) < 0)
+			return;
 	for (int i = 0; i < NumOfCoins; i++)						//decreasing time
 		if (FreeCoins[i] != -1)
-			Time[i] -= fabs(Dist[CoinPos] - CurrentPos);
-
-	for (int i = 0; i < NumOfCoins; i++)						//checking if some coins disappear 
-		if (Time[i] < 0 && FreeCoins[i] != -1) {
-			for (int j = 0; j < NumOfCoins; j++)
-				if (FreeCoins[j] != -1)
-					Time[j] += fabs(Dist[CoinPos] - CurrentPos);
-			return ;
-		}
-
+			Time[i] -= fabs(Dist[CoinPos] - Dist[CurrentPos]);
+	
 	int PrevPos;
 	
-	CurrentTime += fabs(Dist[CoinPos] - CurrentPos);					//if all okey, we can stay in this position
+	CurrentTime += fabs(Dist[CoinPos] - Dist[CurrentPos]);					//if all okey, we can stay in this position
 	PrevPos = CurrentPos;
-	CurrentPos = Dist[CoinPos];
+	CurrentPos = CoinPos;
 	FreeCoins[CoinPos] = -1;
 	
 	int sum = 0;												//if its the last coin, checking for time
 	for (int i = 0; i < NumOfCoins; i++)
 		sum += FreeCoins[i];
 	if (sum == -NumOfCoins) 
-		if(MinTime == -1 || MinTime > CurrentTime)
+		if (MinTime == -1 || MinTime > CurrentTime) {
 			MinTime = CurrentTime;
-
-	for (int NextCoin = 0; NextCoin < NumOfCoins; NextCoin++)	//jumping on the next position
-		if (FreeCoins[NextCoin] != -1)
-			Jump(NextCoin);
+			CurrentPos = PrevPos;										//preparing to go back
+			FreeCoins[CoinPos] = 1;
+			CurrentTime -= fabs(Dist[CoinPos] - Dist[CurrentPos]);
+			return;
+		}
+	
+	for (int NextCoin = 1; NextCoin <= CurrentPos; NextCoin++)	//jumping on the nearest coin on the left, if possible
+		if (FreeCoins[CurrentPos - NextCoin] != -1) {
+			Jump(CurrentPos - NextCoin);
+			break;
+		}
+	for (int NextCoin = 1; NextCoin <= NumOfCoins - CurrentPos; NextCoin++)	//jumping on the nearest coin on the right, if possible
+		if (FreeCoins[CurrentPos + NextCoin] != -1) {
+			Jump(CurrentPos + NextCoin);
+			break;
+		}
 
 	CurrentPos = PrevPos;										//preparing to go back
 	FreeCoins[CoinPos] = 1;
-	CurrentTime -= fabs(Dist[CoinPos] - CurrentPos);
-	
+	CurrentTime -= fabs(Dist[CoinPos] - Dist[CurrentPos]);
 	return;
 }
 
