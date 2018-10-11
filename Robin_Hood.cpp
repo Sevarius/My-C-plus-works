@@ -28,7 +28,7 @@ int main() {
 	for (int i = 0; i < NumOfCoins; i++)
 		cout << Dist[i] << "  " << Time[i] << "\n";
 
-	for (int StartCoin = 0; StartCoin < NumOfCoins; StartCoin++) {	//difrent start positions
+	for (int StartCoin = 0; StartCoin < NumOfCoins; StartCoin++) {	//diffrent start positions
 		CurrentPos = StartCoin;
 		CurrentTime = 0;
 		FreeCoins[StartCoin] = -1;
@@ -66,21 +66,16 @@ void Jump(int CoinPos) {
 	int sum = 0;												//if its the last coin, checking for time
 	for (int i = 0; i < NumOfCoins; i++)
 		sum += FreeCoins[i];
-	if (sum == -NumOfCoins) 
-		if (MinTime == -1 || MinTime > CurrentTime) {
+	if (sum == -NumOfCoins)
+		if (MinTime == -1 || MinTime > CurrentTime)
 			MinTime = CurrentTime;
-			CurrentPos = PrevPos;										//preparing to go back
-			FreeCoins[CoinPos] = 1;
-			CurrentTime -= fabs(Dist[CoinPos] - Dist[CurrentPos]);
-			return;
-		}
-	
+
 	for (int NextCoin = 1; NextCoin <= CurrentPos; NextCoin++)	//jumping on the nearest coin on the left, if possible
 		if (FreeCoins[CurrentPos - NextCoin] != -1) {
 			Jump(CurrentPos - NextCoin);
 			break;
 		}
-	for (int NextCoin = 1; NextCoin <= NumOfCoins - CurrentPos; NextCoin++)	//jumping on the nearest coin on the right, if possible
+	for (int NextCoin = 1; NextCoin < NumOfCoins - CurrentPos; NextCoin++)	//jumping on the nearest coin on the right, if possible
 		if (FreeCoins[CurrentPos + NextCoin] != -1) {
 			Jump(CurrentPos + NextCoin);
 			break;
