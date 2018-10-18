@@ -1,17 +1,18 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include "iostream"
+#include <iostream>
 #include <vector>
 #include <time.h>
 
 using std::cout;
 using std::cin;
 using std::vector;
+using std::swap;
 
-template<typename POINTER, typename LESS_FUN, typename SOME_TYPE>
-void SortFunction(const POINTER begin, const POINTER end);
-uint32_t Less(uint32_t a, uint32_t b);
+template<typename POINTER, typename LESS_FUN>
+void SortFunction(const POINTER begin, const POINTER end, LESS_FUN More);
+
+bool more(uint32_t a, uint32_t b) {
+	return a >= b;
+}
 
 int main() {
 	
@@ -21,67 +22,47 @@ int main() {
 	vector<uint32_t> array(ARRAY_LENGTH);
 	
 	for (int counter = 0; counter < ARRAY_LENGTH; counter++)		//fill the array with random numbers from 0 to 100
-		array[counter] = rand() % 100;
+		array[counter] = rand() % 200 + 1;
 
 	for (int counter = 0; counter < ARRAY_LENGTH; counter++)
 		cout << array[counter] << ' ';
 
 	cout << '\n';
-	uint32_t *begin = &(array[0]), *end = &(array[ARRAY_LENGTH - 1]);
-	SortFunction<uint32_t>(*begin, *end);									//ERROR is here
+	SortFunction(array.begin(), array.end() - 1, more);
 
 	for (int counter = 0; counter < ARRAY_LENGTH; counter++)
 		cout << array[counter] << ' ';
 
-	int just_for_luls;		//words to stay console in open state
-	cin >> just_for_luls;
+	cout << "\n";
+	system("pause");
+	return 0;
 }
 
-template<typename POINTER, typename LESS_FUN, typename SOME_TYPE>
-void SortFunction(const POINTER begin, const POINTER end) {
+template<typename POINTER, typename LESS_FUN>
+void SortFunction(const POINTER begin, const POINTER end, LESS_FUN More) {
 
-	if (&end - &begin + 1 <= 1)		//if segment is one character in length it is already sorted
+	if (end == begin)		//if segment is one character in length it is already sorted
 		return;
-	
-	POINTER supporting_value = begin;		//left end of segment given is adopted for supporting element
+
+	//left end of segment given is adopted for supporting element
 	uint32_t left_index = 0, right_index = 0;
-	POINTER additional_variable;		//variable needed during elements reshuffling
-	
-	for ( ;begin + left_index == end - right_index; ) {
 
-		if (begin + left_index <= supporting_value)
+	while (begin + left_index != end - right_index) {
+
+		if (More(*begin, *(begin + left_index)))
 			left_index += 1;
-		else {
-			if (end - right_index >= supporting_value)
-				right_index += 1;
-			else {
-				additional_variable = begin + left_index;		//reshaffle elements
-				begin + left_index = end - right_index;			
-				end - right_index = additional_variable;		
-			}
-		}
-		
+		else if (More(*(end - right_index), *begin))
+			right_index += 1;
+		else swap(*(begin + left_index), *(end - right_index));
+
 	}
 
-	if (end - right_index >= supporting_value) {	//moving supporting element on his right place in a sequence
-		additional_variable = supporting_value;
-		supporting_value = end - right_index + 1;
-		end - right_index + 1 = additional_variable;
+	if (More(*(end - right_index), *begin)) {	//moving supporting element on his right place in a sequence
 		right_index += 1;
+		swap(*begin, *(end - right_index));
 	}
-	else {
-		additional_variable = supporting_value;
-		supporting_value = end - right_index;
-		end - right_index = additional_variable;
-	}
+	else swap(*begin, *(end - right_index));
 
-	SortFunction(begin, end - right_index - 1);
-	SortFunction(end - right_index + 1, end);
-
-}
-
-
-uint32_t Less(uint32_t a, uint32_t b) {
-	if (a > b) return a;
-	else return b;
+	if(begin != end - right_index) SortFunction(begin, end - right_index - 1, More);
+	if(end - right_index != end) SortFunction(end - right_index + 1, end, More);
 }
