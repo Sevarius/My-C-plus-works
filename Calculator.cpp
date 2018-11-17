@@ -57,15 +57,18 @@ int main() {
 	deque<element> MyDeque;
 
 	MyDeque = ReadLine(line);
-	cout << MyDeque << "\n";
+	cout << "\n" << MyDeque << "\n";
 
 	MyDeque = Reform(MyDeque);
 	cout << MyDeque << "\n";
 
 	double Ans = CountAnswer(MyDeque);
-	cout << Ans;
+	if (Ans >= 0 || Ans <= 0)
+		cout << Ans;
+	else
+		cout << "error";
 	
-	cout << "\n";
+	cout << "\n\n";
 	system("pause");
 	return 0;
 }
@@ -79,7 +82,7 @@ deque<element> ReadLine(string &line) {
 		if (*it == ' ')		//pass by free space
 			it++;
 		else if (*it == '+' || *it == '-' || *it == '*' || *it == '/' || *it == '%' || 
-			*it == '(' || *it == ')' || *it == '^' || *it == 'e') {		//stop "reading" number
+			*it == '(' || *it == ')' || *it == '^' || *it == 'e' || *it == '!') {		//stop "reading" number
 			if (LitLine.size() != 0) {		//putting number in the deque
 				el.index = 1;
 				el.value = atof(LitLine.c_str());
@@ -87,7 +90,7 @@ deque<element> ReadLine(string &line) {
 				LitLine = "";
 				MainDeq.push_back(el);
 			}
-			el.index = 0;		//putting sign in the deque
+			el.index = 0;		//putting sign in the deque 
 			el.value = NAN;
 			el.sign = *it;
 			MainDeq.push_back(el);
@@ -177,6 +180,8 @@ double CountAnswer(deque<element> &MyDeque) {		//counting answer
 				ans.value = MyDeque[i - 2].value * MyDeque[i - 1].value;
 				break;
 			case '/':
+				if (MyDeque[i - 1].value == 0)
+					return NAN;
 				ans.value = MyDeque[i - 2].value / MyDeque[i - 1].value;
 				break;
 			case '%':
@@ -187,14 +192,30 @@ double CountAnswer(deque<element> &MyDeque) {		//counting answer
 				break;
 			case 'e':
 				ans.value = MyDeque[i - 2].value * pow(10.0, MyDeque[i - 1].value);
+				break;
+			case '!':
+				if (MyDeque[i - 1].value < 0)
+					return NAN;
+				ans.value = 1;
+				for (int j = 2; j <= MyDeque[i - 1].value; j++)
+					ans.value *= j;
 			}
-			i -= 2;
-			it = MyDeque.begin() + i;
-			MyDeque.erase(it);
-			it = MyDeque.begin() + i;
-			MyDeque.erase(it);
-			it = MyDeque.begin() + i;
-			MyDeque.erase(it);
+			if (MyDeque[i].sign == '!') {
+				i -= 1;
+				it = MyDeque.begin() + i;
+				MyDeque.erase(it);
+				it = MyDeque.begin() + i;
+				MyDeque.erase(it);
+			}
+			else {
+				i -= 2;
+				it = MyDeque.begin() + i;
+				MyDeque.erase(it);
+				it = MyDeque.begin() + i;
+				MyDeque.erase(it);
+				it = MyDeque.begin() + i;
+				MyDeque.erase(it);
+			}
 			it = MyDeque.begin() + i;
 			MyDeque.insert(it, ans);
 		}
@@ -218,6 +239,8 @@ int Prior(element a) {
 	case '^':
 		return 4;
 	case 'e':
+		return 4;
+	case '!':
 		return 3;
 	case '(':
 		return 100;
