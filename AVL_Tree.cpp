@@ -207,6 +207,38 @@ private:
 			BalanceTree(Node->parent);
 	}
 
+	//function that clear all nodes and connections
+	bool Clear(TreeNode *Node) {
+		//if it is Node without children - delete it
+		if (Node->left == nullptr && Node->right == nullptr) {
+			Node->parent = nullptr;
+			Node->information = NAN;
+			Node->key = NAN;
+			Node->height = NAN;
+			return 1;
+		}
+		//if not - go to it's children with recursion and delete them
+		else {
+			if(Node->left != nullptr)
+				if (Clear(Node->left)) {
+					Node->left = nullptr;
+					Node->information = NAN;
+					Node->key = NAN;
+					Node->height = NAN;
+					return 1;
+				}
+			if (Node->right != nullptr)
+				if (Clear(Node->right)) {
+					Node->right = nullptr;
+					Node->information = NAN;
+					Node->key = NAN;
+					Node->height = NAN;
+					return 1;
+				}
+		}
+
+	}
+
 public:
 
 	//you can add nodes to the tree with this function
@@ -218,8 +250,9 @@ public:
 	} 
 
 	void ClearTree(void) {
-		delete root;
-		root = nullptr;
+		if( Clear(root) )
+		cout << "tree cleared";
+		return;
 	}
 
 	friend void PrintTree(TreeNode *Node, int depth, int state);
@@ -267,6 +300,8 @@ int main(void) {
 		Tree.AddNode(&(m[i]));
 		cout << Tree << "\n----------------------\n";
 	}
+
+	Tree.ClearTree();
 	
 	cout << "\n";
 	system("pause");
