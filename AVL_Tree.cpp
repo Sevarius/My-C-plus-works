@@ -2,7 +2,8 @@
 #include <ctime>
 #include <cmath>
 
-using namespace std;
+using std::cout;
+using std::ostream;
 
 class TreeNode {
 public:
@@ -22,11 +23,11 @@ public:
 		height = NAN;
 	}
 	
-	friend bool operator<(TreeNode &left, TreeNode &right);
+	friend bool operator<(const TreeNode &left, const TreeNode &right);
 	friend ostream &operator<<(ostream &os, const TreeNode &Node);
 };
 
-bool operator< (TreeNode &left, TreeNode &right) {
+bool operator< (const TreeNode &left, const TreeNode &right) {
 	return (left.key < right.key);
 }
 
@@ -41,36 +42,34 @@ private:
 	int hight;
 	TreeNode *root = new TreeNode;
 
-public:
-
-	void AddNode(TreeNode *NewNode) {
-		if (root->key != root->key)
-			root = NewNode;
-		else
-			PutNode(NewNode, root);
-	} 
-	
+	//recursive function, that puts Node in the tree
 	void PutNode(TreeNode *NewNode, TreeNode *NodeInTree) {
 		if ((NewNode->key) <= (NodeInTree->key))
 			if (NodeInTree->left == nullptr) {
 				NodeInTree->left = NewNode;
-				NewNode->parent = NodeInTree;
-				UpdateHeight(NewNode->parent);
-				BalanceTree(NewNode->parent);
+				MakeChild(NewNode, NodeInTree);
 			}
 			else
 				PutNode(NewNode, NodeInTree->left);
 		else
 			if (NodeInTree->right == nullptr) {
 				NodeInTree->right = NewNode;
-				NewNode->parent = NodeInTree;
-				UpdateHeight(NewNode->parent);
-				BalanceTree(NewNode->parent);
+				MakeChild(NewNode, NodeInTree);
 			}
 			else
 				PutNode(NewNode, NodeInTree->right);
 	}
 
+	//function that makes children
+	void MakeChild(TreeNode *NewNode, TreeNode *NodeInTree) {
+		NewNode->parent = NodeInTree;
+		NewNode->height = 1;
+		UpdateHeight(NewNode->parent);
+		BalanceTree(NewNode->parent);
+		return;
+	}
+	
+	//function that update heights
 	void UpdateHeight(TreeNode *Node) {
 		if (Node->left == nullptr)
 			if (Node->right == nullptr)
@@ -88,8 +87,11 @@ public:
 		if (Node->parent != nullptr)
 			UpdateHeight(Node->parent);
 	}
-	int CompareChildren(TreeNode *Node, int a) {			//in case of a == 2, this function shows if Tree needs to be balanced in this node, and a child with bigger node
-		if (Node->left == nullptr)							//in case of a == 1, this function shows just the child with bigger node ( the Tree probably don't need to be balanced in this node
+
+	//in case of a == 2, this function shows if Tree needs to be balanced in this node, and a child with bigger height
+	//in case of a == 1, this function shows just the child with bigger height ( the Tree probably don't need to be balanced in this node)
+	int CompareChildren(TreeNode *Node, int a) {			
+		if (Node->left == nullptr)							
 			if (Node->right == nullptr)
 				return 0;
 			else
@@ -111,139 +113,116 @@ public:
 				else
 					return 0;
 	}
+
+	//function that rotates tree: swap(left_child, right_child)
+	void Rotate(TreeNode *Node) {
+		if (Node->left == nullptr and Node->right == nullptr)
+			return;
+		else if (Node->left != nullptr and Node->right == nullptr) {
+			Node->right = Node->left;
+			Node->left = nullptr;
+			Rotate(Node->right);
+		}
+		else if (Node->left == nullptr and Node->right != nullptr) {
+			Node->left = Node->right;
+			Node->right = nullptr;
+			Rotate(Node->left);
+		}
+		else {
+			TreeNode *temp = Node->left;
+			Node->left = Node->right;
+			Node->right = temp;
+			Rotate(Node->right);
+			Rotate(Node->left);
+		}
+	}
+	
+	//function that can balance tree if only left child and left child of the left child have bigger heights
+	void BalanceLeft(TreeNode *Node) {
+		if (Node->parent == nullptr) {
+			Node->left->parent = nullptr;
+			root = Node->left;
+		}
+		else {
+			if (Node->parent->left->information == Node->information)
+				Node->parent->left = Node->left;
+			else
+				Node->parent->right = Node->left;
+			Node->left->parent = Node->parent;
+		}
+		Node->parent = Node->left;
+		if (Node->parent->right != nullptr) {
+			Node->parent->right->parent = Node;
+			Node->left = Node->left->right;
+		}
+		else
+			Node->left = nullptr;
+		Node->parent->right = Node;
+		//change heights
+		Node->height -= 2;
+		UpdateHeight(Node->parent);
+	}
+
+	//function that prereform tree to unable function above
+	void PreReform(TreeNode *Node) {
+		Node->left->right->parent = Node;
+		Node->left->parent = Node->left->right;
+		if (Node->left->right->left != nullptr) {
+			Node->left->right->left->parent = Node->left;
+			Node->left->right = Node->left->right->left;
+		}
+		else
+			Node->left->right = nullptr;
+		Node->left->parent->left = Node->left;
+		Node->left = Node->left->parent;
+		Node->left->height += 1;
+		Node->left->left->height -= 1;
+		return;
+	}
+
+	//function that balance the tree
 	void BalanceTree(TreeNode *Node) {
-			if (CompareChildren(Node, 2) == 1) {
-				if (CompareChildren(Node->left, 1) == 1) {
-					if (Node->parent == nullptr) {
-						Node->left->parent = nullptr;
-						root = Node->left;
-					}
-					else {
-						if (Node->parent->left->information == Node->information)
-							Node->parent->left = Node->left;
-						else
-							Node->parent->right = Node->left;
-						Node->left->parent = Node->parent;
-					}
-					Node->parent = Node->left;
-					if (Node->parent->right != nullptr) {
-						Node->parent->right->parent = Node;
-						Node->left = Node->left->right;
-					}
-					else
-						Node->left = nullptr;
-					Node->parent->right = Node;
-					//change heights
-					Node->height -= 2;
-					UpdateHeight(Node->parent);
-				}
-				else {
-					if (Node->parent == nullptr) {
-						Node->left->right->parent = nullptr;
-						root = Node->left->right;
-					}
-					else {
-						if (Node->parent->left->information == Node->information)
-							Node->parent->left = Node->left->right;
-						else
-							Node->parent->right = Node->left->right;
-						Node->left->right->parent = Node->parent;
-					}
-					Node->parent = Node->left->right;
-					Node->left->parent = Node->parent;
-					if (Node->left->right->left != nullptr) {
-						Node->left->right->left->parent = Node->left;
-						Node->left->right = Node->left->right->left;
-					}
-					else
-						Node->left->right = nullptr;
-					Node->parent->left = Node->left;
-					if (Node->parent->right != nullptr) {
-						Node->parent->right->parent = Node;
-						Node->left = Node->parent->right;
-					}
-					else
-						Node->left = nullptr;
-					Node->parent->right = Node;
-					//change heights
-					Node->height -= 2;
-					Node->parent->height += 1;
-					Node->parent->left->height -= 1;
-					UpdateHeight(Node->parent);
-				}
+		if (CompareChildren(Node, 2) == 1) {
+			if (CompareChildren(Node->left, 1) == 1)
+				BalanceLeft(Node);
+			else {
+				PreReform(Node);
+				BalanceLeft(Node);
 			}
-			else if (CompareChildren(Node, 2) == 2) {
-				if (CompareChildren(Node->right, 1) == 2) {
-					if (Node->parent == nullptr) {
-						Node->right->parent = nullptr;
-						root = Node->right;
-					}
-					else {
-						if (Node->parent->right->information == Node->information)
-							Node->parent->right = Node->right;
-						else
-							Node->parent->left = Node->right;
-						Node->right->parent = Node->parent;
-					}
-					Node->parent = Node->right;
-					if (Node->parent->left != nullptr) {
-						Node->parent->left->parent = Node;
-						Node->right = Node->right->left;
-					}
-					else
-						Node->right = nullptr;
-					Node->parent->left = Node;
-					//change heights
-					Node->height -= 2;
-					UpdateHeight(Node->parent);
-				}
-				else {
-					if (Node->parent == nullptr) {
-						Node->right->left->parent = nullptr;
-						root = Node->right->left;
-					}
-					else {
-						if (Node->parent->right->information == Node->information)
-							Node->parent->right = Node->right->left;
-						else
-							Node->parent->left = Node->right->left;
-						Node->right->left->parent = Node->parent;
-					}
-					Node->parent = Node->right->left;
-					Node->right->parent = Node->parent;
-					if (Node->right->left->right != nullptr) {
-						Node->right->left->right->parent = Node->right;
-						Node->right->left = Node->right->left->right;
-					}
-					else
-						Node->right->left = nullptr;
-					Node->parent->right = Node->right;
-					if (Node->parent->left != nullptr) {
-						Node->parent->left->parent = Node;
-						Node->right = Node->parent->left;
-					}
-					else
-						Node->right = nullptr;
-					Node->parent->left = Node;
-					//change heights
-					Node->height -= 2;
-					Node->parent->height += 1;
-					Node->parent->right->height -= 1;
-					UpdateHeight(Node->parent);
-				}
+		}
+		else if (CompareChildren(Node, 2) == 2) {
+			if (CompareChildren(Node->right, 1) == 2) {
+				Rotate(Node);
+				BalanceLeft(Node);
+				Rotate(Node->parent);
 			}
+			else {
+				Rotate(Node);
+				PreReform(Node);
+				BalanceLeft(Node);
+				Rotate(Node->parent);
+			}
+		}
 		if (Node->parent != nullptr)
 			BalanceTree(Node->parent);
 	}
-	
-	
+
+public:
+
+	//you can add nodes to the tree with this function
+	void AddNode(TreeNode *NewNode) {
+		if (root->key != root->key)
+			root = NewNode;
+		else
+			PutNode(NewNode, root);
+	} 
 
 	friend void PrintTree(TreeNode *Node, int depth, int state);
 	
 	friend ostream &operator<<(ostream &os, const AVLTree &Tree);
 };
 
-void PrintTree(TreeNode *Node, int depth = 0, int state = 0) {			// I can't show special UNICODE symbols(((
+void PrintTree(TreeNode *Node, int depth = 0, int state = 0) {			// I can't show special UNICODE symbols, like this "┌───" or this "└───"
 	if (Node->left != nullptr)
 		PrintTree(Node->left, depth + 1, 1);
 	for (int i = 0; i < depth; i++)
@@ -274,7 +253,7 @@ ostream &operator<<(ostream &os, const AVLTree &Tree) {
 
 int main(void) {
 	srand(time(0));
-	const int a = 20;
+	const int a = 10;
 	TreeNode m[a];
 	AVLTree Tree;
 	for (int i = 0; i < a; i++) {
