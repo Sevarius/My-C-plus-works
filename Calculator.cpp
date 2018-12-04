@@ -77,12 +77,12 @@ deque<element> ReadLine(string &line) {
 	element el;
 	deque<element> MainDeq;
 	string::iterator it = line.begin();
+	string markers = "+-*/%()^e!";
 
 	while (it != line.end()) {		//"reading" line
 		if (*it == ' ')		//pass by free space
 			it++;
-		else if (*it == '+' || *it == '-' || *it == '*' || *it == '/' || *it == '%' || 
-			*it == '(' || *it == ')' || *it == '^' || *it == 'e' || *it == '!') {		//stop "reading" number
+		else if (markers.find(*it) != string::npos) {		//stop "reading" number
 			if (LitLine.size() != 0) {		//putting number in the deque
 				el.index = 1;
 				el.value = atof(LitLine.c_str());
@@ -239,9 +239,9 @@ int Prior(element a) {
 	case '^':
 		return 4;
 	case 'e':
-		return 4;
-	case '!':
 		return 3;
+	case '!':
+		return 2;
 	case '(':
 		return 100;
 	case ')':
