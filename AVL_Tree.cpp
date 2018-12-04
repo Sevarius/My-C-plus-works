@@ -217,6 +217,11 @@ public:
 			PutNode(NewNode, root);
 	} 
 
+	void ClearTree(void) {
+		delete root;
+		root = nullptr;
+	}
+
 	friend void PrintTree(TreeNode *Node, int depth, int state);
 	
 	friend ostream &operator<<(ostream &os, const AVLTree &Tree);
